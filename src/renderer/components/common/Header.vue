@@ -48,7 +48,7 @@
     font-size: 22px;
     line-height: 70px;
     color: #fff;
-    background-color: black;
+    background-color: #1c272b;
   }
   .header .logo{
     float: left;
@@ -57,7 +57,7 @@
   }
   .header .logo span{
     font-size: 12px;
-    background-color: blue;
+    background-color: #f26b3a;
   }
   .user-info {
     float: right;

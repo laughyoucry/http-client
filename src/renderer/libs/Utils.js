@@ -81,7 +81,7 @@ utils.llog = function (content) {
  * 
  * @param content 内容
  */
-utils.saveHistory = function (content) {
+utils.saveHistory = function (vm, content) {
   let today = moment().format('YYYY-MM-DD')
   // 如果历史文件根目录不存在则创建
   if (!fs.existsSync(historyPath)) {
@@ -100,6 +100,7 @@ utils.saveHistory = function (content) {
     if (err) {
       console.log(err)
     }
+    vm.$store.commit('setHistory', utils.listHistoryFiles().reverse())
   })
 }
 
@@ -146,6 +147,101 @@ utils.listHistoryReqs = function (folder) {
     this.llog(filePath + '文件夹不存在或下面无文件夹')
   }
   return result
+}
+
+/**
+ * 列出历史记录下的所有文件
+ */
+utils.listHistoryFiles = function() {
+  let result = []
+  // 如果历史文件根目录不存在则创建
+  if (!fs.existsSync(historyPath)) {
+    // 创建文件夹
+    fs.mkdirSync(historyPath)
+    return result
+  }
+  // 读取文件
+  try {
+    // 日期二级文件夹
+    fs.readdirSync(historyPath).forEach(function (pfile) {
+      if (!fs.statSync(historyPath + '/' + pfile).isFile()) {
+        let tmp = {
+          name: '',
+          files: []
+        }
+        tmp.name = pfile
+        fs.readdirSync(historyPath + '/' + pfile).forEach(function (sfile) {
+          let filePath = historyPath + '/' + pfile + '/' + sfile
+          let fileData = utils.readFile(filePath, false)
+          if (!!fileData) {
+            tmp.files.push(fileData)
+          }
+        })
+        // 倒序排序
+        tmp.files = tmp.files.reverse()
+        result.push(tmp)
+      }
+    })
+  } catch (e) {
+    this.llog(historyPath + '文件夹不存在或下面无文件夹')
+  }
+  return result
+}
+
+/**
+ * 获取文件内容，并组装成规定格式
+ * 
+ * @param {string} filePath 文件路径
+ * @param {boolean} withData 是否带上内容
+ */
+utils.readFile = function(filePath, withData) {
+  let result = {
+    name: '',
+    method: '',
+    data: '',
+    filePath: filePath
+  }
+  // 是文件并且存在
+  if (fs.statSync(filePath).isFile()) {
+    // 是 json文件
+    if (path.extname(filePath).toLowerCase() === '.json') {
+      result.name = path.basename(filePath, '.json')
+      let fileData = fs.readFileSync(filePath)
+      try {
+        let data = JSON.parse(fileData)
+        // 需要带上内容
+        if (!!withData) {
+          result.data = data
+        }
+        result.method = data.method || ''
+        return result
+      } catch(e) {
+        this.llog(filePath + "转换JSON出错，请检查")
+      }
+    }
+  }
+  return
+}
+
+/**
+ * 获取文件对象
+ * 
+ * @param {array} files 
+ * @param {string} name 
+ */
+utils.getFileDataByName = function (files, name) {
+  if (!name || !files || !files.length) {
+      return null;
+  }
+  let fileData = null;
+  for (let pfile of files) {
+    for (let item of pfile.files) {
+      if (item.name === name) {
+          return item;
+      }
+    }
+  }
+  return null;
 }
 
 /**

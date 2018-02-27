@@ -7,7 +7,7 @@
       @on-select="handleSelect"
       >
       <div style="height=200px;">
-        <Option v-for="item in req.showApis" :value="item.path" :key="item.value">{{ item.value }}</Option>
+        <Option v-for="item in temps.showApis" :value="item.path" :key="item.value">{{ item.value }}</Option>
       </div>
     </AutoComplete>
     <Input
@@ -31,13 +31,13 @@
     <div style="margin-top:8px">
       <Card>
         <p slot="title">
-          <Icon type="ios-film-outline"></Icon>
+          <Icon type="pull-request"></Icon>
           请求
         </p>
         <Input 
           v-model="req.body" 
           type="textarea"
-          :rows=6
+          :rows=12
           style="font-family:monospace;"
           placeholder="JSON格式请求体">
         </Input>
@@ -46,7 +46,7 @@
     <div style="margin-top:8px">
       <Card>
         <p slot="title">
-          <Icon type="ios-film-outline"></Icon>
+          <Icon type="android-textsms"></Icon>
           响应
         </p>
         <code>
@@ -54,6 +54,7 @@
         </code>
       </Card>
     </div>
+    <input type="hidden" v-model="historyCount"></input>
   </div>
 </template>
 <script>
@@ -66,17 +67,19 @@
   export default{
     data () {
       return {
-        req: {
+        temps: {
           'api': '',
           'apis': this.loadAll(),
-          'showApis': this.loadAll(),
-          'appid': utils.getFromLocal('req_appid', ''),
-          'uri': utils.getFromLocal('req_uri', ''),
-          'method': utils.getFromLocal('req_method', 'GET'),
-          'body': utils.getFromLocal('req_body', '')
+          'showApis': this.loadAll()
+        },
+        req: {
+          appid: this.$store.state.app.req.appid,
+          uri: this.$store.state.app.req.uri,
+          method: this.$store.state.app.req.method,
+          body: this.$store.state.app.req.body
         },
         res: {
-          'body': ''
+          body: this.$store.state.app.res.body
         },
         conf: {
           'privateKey': utils.getFromLocal('privateKey', '')
@@ -91,9 +94,9 @@
         return files
       },
       handleSearch (queryString) {
-        var apis = this.req.apis
+        var apis = this.temps.apis
         var results = queryString ? apis.filter(this.createFilter(queryString)) : apis
-        this.req.showApis = results
+        this.temps.showApis = results
       },
       // 过滤方法
       createFilter (queryString) {
@@ -156,7 +159,7 @@
             hisData.method = _this.req.method
             hisData.body = _this.req.body
             hisData.response = respMsg
-            utils.saveHistory(JSON.stringify(hisData, null, 2))
+            utils.saveHistory(_this, JSON.stringify(hisData, null, 2))
           } else {
             utils.llog("失败响应:" + error)
             _this.res.body = error
@@ -227,6 +230,18 @@
         localStorage.setItem('req_appid', this.req.appid)
         localStorage.setItem('req_method', this.req.method)
         localStorage.setItem('req_body', this.req.body)
+
+        let tmpReq = {
+          appid: this.req.appid,
+          uri: this.req.uri,
+          method: this.req.method,
+          body: this.req.body
+        }
+        this.$store.commit('setReq', tmpReq)
+        this.$store.commit('setRes', {
+          body: this.res.body
+        })
+        this.$store.commit('INCREMENT_OPER_COUNTER')
       },
       // 选择操作
       handleSelect (item) {
@@ -239,12 +254,30 @@
           utils.llog('文件：' + name + '无内容或JSON格式不正确')
           return
         }
-        this.req.method = reqData.method
-        this.req.uri = reqData.uri
-        this.req.appid = reqData.appid
-        this.req.body = JSON.stringify(reqData.body, null, 2)
-        // 清除响应内容
-        this.res.body = ''
+        // 改变参数
+        let req = {
+          appid: reqData.appid,
+          uri: reqData.uri,
+          method: reqData.method,
+          body: JSON.stringify(reqData.body, null, 2)
+        }
+        this.$store.commit('setReq', req)
+        this.$store.commit('setRes', {
+          body: ''
+        })
+      }
+    },
+    computed: {
+      count() {
+        let result = this.$store.state.Counter.hisToOper
+        console.log("结果为：" + result)
+        return result
+      },
+      historyCount() {
+        let result = this.$store.state.Counter.hisToOper
+        console.log("结果为：" + result)
+        this.req = this.$store.state.app.req
+        return result
       }
     }
   }

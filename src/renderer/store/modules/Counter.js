@@ -1,20 +1,21 @@
 const state = {
-  main: 0
+  hisToOper: 0,
+  operToHis: 0
 }
 
 const mutations = {
-  DECREMENT_MAIN_COUNTER (state) {
-    state.main--
+  INCREMENT_HIS_COUNTER (state) {
+    state.hisToOper++
   },
-  INCREMENT_MAIN_COUNTER (state) {
-    state.main++
+  INCREMENT_OPER_COUNTER (state) {
+    state.operToHis++
   }
 }
 
 const actions = {
   someAsyncTask ({ commit }) {
     // do something async
-    commit('INCREMENT_MAIN_COUNTER')
+    commit('INCREMENT_HIS_COUNTER')
   }
 }
 

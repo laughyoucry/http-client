@@ -20,11 +20,6 @@ export default new Router({
           component: require('@/components/pages/Operation').default
         },
         {
-          name: 'history',
-          path: '/history',
-          component: require('@/components/pages/History').default
-        },
-        {
           name: 'setting',
           path: '/setting',
           component: require('@/components/pages/Setting').default
