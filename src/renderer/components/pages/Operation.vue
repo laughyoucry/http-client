@@ -277,6 +277,7 @@
         let result = this.$store.state.Counter.hisToOper
         console.log("结果为：" + result)
         this.req = this.$store.state.app.req
+        this.res = this.$store.state.app.res
         return result
       }
     }
