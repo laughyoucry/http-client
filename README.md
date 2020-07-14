@@ -18,7 +18,7 @@ npm run build
 ```
 
 #### 页面视图
-![请求客户端主页](/static/http-client.png)
+![请求客户端主页](./static/http-client.png)
 
 ---
 
